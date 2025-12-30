@@ -49,5 +49,25 @@ module.exports = {
     DATE: {
       INVALID: 'Invalid date format'
     }
+  },
+
+  // Tag Validation
+  TAG: {
+    NAME: {
+      REQUIRED: 'Tag name is required',
+      EMPTY: 'Tag name cannot be empty',
+      TOO_LONG: 'Tag name must not exceed {{max}} characters',
+      TOO_SHORT: 'Tag name must be at least {{min}} character'
+    },
+    COLOR: {
+      INVALID: 'Color must be a valid hex color (e.g., #FF5733)'
+    },
+    ID: {
+      REQUIRED: 'Tag ID is required',
+      INVALID: 'Invalid tag ID format'
+    },
+    TARGET_TAG_ID: {
+      REQUIRED: 'Target tag ID is required for merge operation'
+    }
   }
 };

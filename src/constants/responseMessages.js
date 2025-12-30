@@ -39,10 +39,13 @@ module.exports = {
     DELETED: 'Category deleted successfully'
   },
 
-  // Tag (for future use)
+  // Tag
   TAG: {
     CREATED: 'Tag created successfully',
     UPDATED: 'Tag updated successfully',
-    DELETED: 'Tag deleted successfully'
+    DELETED: 'Tag deleted successfully',
+    MERGED: 'Tags merged successfully',
+    FETCHED: 'Tag fetched successfully',
+    LIST_FETCHED: 'Tags list fetched successfully'
   }
 };

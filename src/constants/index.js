@@ -10,6 +10,7 @@ const RESPONSE_MESSAGES = require('./responseMessages');
 const AUTH_CONSTANTS = require('./authConstants');
 const USER_CONSTANTS = require('./userConstants');
 const COMMON_CONSTANTS = require('./commonConstants');
+const TAG_CONSTANTS = require('./tagConstants');
 
 module.exports = {
   HTTP_STATUS,
@@ -18,5 +19,6 @@ module.exports = {
   RESPONSE_MESSAGES,
   AUTH_CONSTANTS,
   USER_CONSTANTS,
-  COMMON_CONSTANTS
+  COMMON_CONSTANTS,
+  TAG_CONSTANTS
 };

@@ -35,5 +35,17 @@ module.exports = {
     INVALID_CATEGORY: 'Invalid category',
     INVALID_TAG: 'Invalid tag',
     TAG_NOT_FOUND: 'Tag not found'
+  },
+
+  // Tag Errors
+  TAG: {
+    NOT_FOUND: 'Tag not found',
+    UNAUTHORIZED_ACCESS: 'Unauthorized to access this tag',
+    NAME_ALREADY_EXISTS: 'A tag with this name already exists',
+    MAX_TAGS_REACHED: 'Maximum number of tags reached',
+    INVALID_COLOR: 'Invalid color format',
+    CANNOT_DELETE_IN_USE: 'Cannot delete tag that is in use by expenses',
+    MERGE_TARGET_NOT_FOUND: 'Target tag for merge not found',
+    CANNOT_MERGE_SAME_TAG: 'Cannot merge a tag with itself'
   }
 };

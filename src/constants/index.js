@@ -11,6 +11,7 @@ const AUTH_CONSTANTS = require('./authConstants');
 const USER_CONSTANTS = require('./userConstants');
 const COMMON_CONSTANTS = require('./commonConstants');
 const CATEGORY_CONSTANTS = require('./categoryConstants');
+const TAG_CONSTANTS = require('./tagConstants');
 
 module.exports = {
   HTTP_STATUS,
@@ -20,5 +21,6 @@ module.exports = {
   AUTH_CONSTANTS,
   USER_CONSTANTS,
   COMMON_CONSTANTS,
-  CATEGORY_CONSTANTS
+  CATEGORY_CONSTANTS,
+  TAG_CONSTANTS
 };

@@ -6,16 +6,16 @@ const { COMMON_CONSTANTS, RESPONSE_MESSAGES } = require('../constants');
 const authRoutes = require('./auth.routes');
 const categoryRoutes = require('./category.routes');
 const tagRoutes = require('./tag.routes');
+const expenseRoutes = require('./expense.routes');
 // const userRoutes = require('./user.routes');
-// const expenseRoutes = require('./expense.routes');
 // const recurringRoutes = require('./recurring.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/tags', tagRoutes);
+router.use('/expenses', expenseRoutes);
 // router.use('/users', userRoutes);
-// router.use('/expenses', expenseRoutes);
 // router.use('/recurring', recurringRoutes);
 
 // Health check for API

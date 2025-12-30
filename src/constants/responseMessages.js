@@ -44,5 +44,13 @@ module.exports = {
     CREATED: 'Tag created successfully',
     UPDATED: 'Tag updated successfully',
     DELETED: 'Tag deleted successfully'
+  },
+
+  // Attachment
+  ATTACHMENT: {
+    UPLOADED: 'Attachment uploaded successfully',
+    DELETED: 'Attachment deleted successfully',
+    FETCHED: 'Attachment fetched successfully',
+    LIST_FETCHED: 'Attachments list fetched successfully'
   }
 };

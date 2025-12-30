@@ -35,5 +35,18 @@ module.exports = {
     INVALID_CATEGORY: 'Invalid category',
     INVALID_TAG: 'Invalid tag',
     TAG_NOT_FOUND: 'Tag not found'
+  },
+
+  // Attachment Errors
+  ATTACHMENT: {
+    NOT_FOUND: 'Attachment not found',
+    UNAUTHORIZED_ACCESS: 'Unauthorized to access this attachment',
+    FILE_NOT_FOUND: 'File not found on server',
+    UPLOAD_FAILED: 'File upload failed',
+    INVALID_FILE_TYPE: 'Invalid file type. Allowed types: images (JPEG, PNG, GIF, WebP) and documents (PDF, DOC, DOCX, XLS, XLSX, TXT, CSV)',
+    FILE_TOO_LARGE: 'File size exceeds maximum limit',
+    MAX_FILES_EXCEEDED: 'Maximum number of attachments per expense exceeded',
+    THUMBNAIL_GENERATION_FAILED: 'Thumbnail generation failed',
+    DELETE_FAILED: 'Failed to delete attachment'
   }
 };

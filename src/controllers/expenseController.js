@@ -83,7 +83,7 @@ class ExpenseController {
   async getSummaryStats(req, res, next) {
     try {
       const userId = req.user.userId;
-      const filters = this.extractFilters(req.query);
+      const filters = ExpenseController.extractFilters(req.query);
       const stats = await expenseService.getSummaryStats(userId, filters);
       res.status(HTTP_STATUS.OK).json({
         success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
@@ -98,7 +98,7 @@ class ExpenseController {
   async getCategoryStats(req, res, next) {
     try {
       const userId = req.user.userId;
-      const filters = this.extractFilters(req.query);
+      const filters = ExpenseController.extractFilters(req.query);
       const stats = await expenseService.getCategoryStats(userId, filters);
       res.status(HTTP_STATUS.OK).json({
         success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
@@ -113,7 +113,7 @@ class ExpenseController {
   async getTagStats(req, res, next) {
     try {
       const userId = req.user.userId;
-      const filters = this.extractFilters(req.query);
+      const filters = ExpenseController.extractFilters(req.query);
       const stats = await expenseService.getTagStats(userId, filters);
       res.status(HTTP_STATUS.OK).json({
         success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
@@ -128,7 +128,7 @@ class ExpenseController {
   async getMonthlyStats(req, res, next) {
     try {
       const userId = req.user.userId;
-      const filters = this.extractFilters(req.query);
+      const filters = ExpenseController.extractFilters(req.query);
       const stats = await expenseService.getMonthlyStats(userId, filters);
       res.status(HTTP_STATUS.OK).json({
         success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
@@ -143,7 +143,7 @@ class ExpenseController {
   async getTrends(req, res, next) {
     try {
       const userId = req.user.userId;
-      const filters = this.extractFilters(req.query);
+      const filters = ExpenseController.extractFilters(req.query);
       const trends = await expenseService.getTrends(userId, filters);
       res.status(HTTP_STATUS.OK).json({
         success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
@@ -208,7 +208,7 @@ class ExpenseController {
   }
 
   // Helper method to extract filters from query params
-  extractFilters(query) {
+  static extractFilters(query) {
     const filters = {};
     if (query.categoryId) filters.categoryId = query.categoryId;
     if (query.tags) filters.tags = Array.isArray(query.tags) ? query.tags : [query.tags];

@@ -1,12 +1,17 @@
 const authService = require('../services/authService');
+const {
+  HTTP_STATUS,
+  RESPONSE_MESSAGES,
+  COMMON_CONSTANTS
+} = require('../constants');
 
 class AuthController {
   async register(req, res, next) {
     try {
       const result = await authService.register(req.body);
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
+      res.status(HTTP_STATUS.CREATED).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+        message: RESPONSE_MESSAGES.AUTH.REGISTRATION_SUCCESS,
         data: result
       });
     } catch (error) {
@@ -18,9 +23,9 @@ class AuthController {
     try {
       const { email, password } = req.body;
       const result = await authService.login(email, password);
-      res.status(200).json({
-        success: true,
-        message: 'Login successful',
+      res.status(HTTP_STATUS.OK).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+        message: RESPONSE_MESSAGES.AUTH.LOGIN_SUCCESS,
         data: result
       });
     } catch (error) {
@@ -32,9 +37,9 @@ class AuthController {
     try {
       const { refreshToken } = req.body;
       const result = await authService.refreshToken(refreshToken);
-      res.status(200).json({
-        success: true,
-        message: 'Token refreshed successfully',
+      res.status(HTTP_STATUS.OK).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+        message: RESPONSE_MESSAGES.AUTH.TOKEN_REFRESHED,
         data: result
       });
     } catch (error) {
@@ -45,8 +50,8 @@ class AuthController {
   async getCurrentUser(req, res, next) {
     try {
       const user = await authService.getCurrentUser(req.user.userId);
-      res.status(200).json({
-        success: true,
+      res.status(HTTP_STATUS.OK).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
         data: { user }
       });
     } catch (error) {
@@ -58,9 +63,9 @@ class AuthController {
     try {
       // For JWT, logout is handled client-side by removing the token
       // But we can track it on server side if needed
-      res.status(200).json({
-        success: true,
-        message: 'Logout successful'
+      res.status(HTTP_STATUS.OK).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+        message: RESPONSE_MESSAGES.AUTH.LOGOUT_SUCCESS
       });
     } catch (error) {
       next(error);

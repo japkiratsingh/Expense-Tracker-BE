@@ -1,3 +1,5 @@
+const { USER_CONSTANTS, AUTH_CONSTANTS } = require('../constants');
+
 class User {
   constructor(data = {}) {
     this._id = data._id || null;
@@ -6,19 +8,23 @@ class User {
     this.firstName = data.firstName || '';
     this.lastName = data.lastName || '';
     this.profilePicture = data.profilePicture || null;
-    this.defaultCurrency = data.defaultCurrency || 'USD';
-    this.preferences = data.preferences || {
-      dateFormat: 'YYYY-MM-DD',
-      theme: 'light',
-      notifications: {
-        email: true,
-        recurringReminders: true
-      }
-    };
+    this.defaultCurrency = data.defaultCurrency || USER_CONSTANTS.DEFAULTS.CURRENCY;
+    this.preferences = data.preferences || this._getDefaultPreferences();
     this.createdAt = data.createdAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
-    this.isActive = data.isActive !== undefined ? data.isActive : true;
+    this.isActive = data.isActive !== undefined ? data.isActive : AUTH_CONSTANTS.USER_STATUS.ACTIVE;
     this.lastLogin = data.lastLogin || null;
+  }
+
+  _getDefaultPreferences() {
+    return {
+      dateFormat: USER_CONSTANTS.DEFAULTS.DATE_FORMAT,
+      theme: USER_CONSTANTS.DEFAULTS.THEME,
+      notifications: {
+        email: USER_CONSTANTS.NOTIFICATIONS.EMAIL.DEFAULT,
+        recurringReminders: USER_CONSTANTS.NOTIFICATIONS.RECURRING_REMINDERS.DEFAULT
+      }
+    };
   }
 
   toJSON() {

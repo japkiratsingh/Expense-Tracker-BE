@@ -1,39 +1,47 @@
 const { body } = require('express-validator');
+const {
+  VALIDATION_MESSAGES,
+  AUTH_CONSTANTS,
+  USER_CONSTANTS
+} = require('../constants');
 
 const registerValidator = [
   body('email')
-    .exists().withMessage('Email is required')
-    .isEmail().withMessage('Please provide a valid email')
+    .exists().withMessage(VALIDATION_MESSAGES.EMAIL.REQUIRED)
+    .isEmail().withMessage(VALIDATION_MESSAGES.EMAIL.INVALID)
     .normalizeEmail(),
   body('password')
-    .exists().withMessage('Password is required')
-    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    .exists().withMessage(VALIDATION_MESSAGES.PASSWORD.REQUIRED)
+    .isLength({ min: AUTH_CONSTANTS.PASSWORD.MIN_LENGTH })
+    .withMessage(
+      VALIDATION_MESSAGES.PASSWORD.MIN_LENGTH
+        .replace('{{min}}', AUTH_CONSTANTS.PASSWORD.MIN_LENGTH)
+    ),
   body('firstName')
-    .exists().withMessage('First name is required')
+    .exists().withMessage(VALIDATION_MESSAGES.FIRST_NAME.REQUIRED)
     .trim()
-    .notEmpty().withMessage('First name cannot be empty')
-    .isLength({ max: 50 }).withMessage('First name is too long'),
+    .notEmpty().withMessage(VALIDATION_MESSAGES.FIRST_NAME.EMPTY)
+    .isLength({ max: USER_CONSTANTS.FIELD_LENGTHS.FIRST_NAME_MAX })
+    .withMessage(VALIDATION_MESSAGES.FIRST_NAME.TOO_LONG),
   body('lastName')
-    .exists().withMessage('Last name is required')
+    .exists().withMessage(VALIDATION_MESSAGES.LAST_NAME.REQUIRED)
     .trim()
-    .notEmpty().withMessage('Last name cannot be empty')
-    .isLength({ max: 50 }).withMessage('Last name is too long')
+    .notEmpty().withMessage(VALIDATION_MESSAGES.LAST_NAME.EMPTY)
+    .isLength({ max: USER_CONSTANTS.FIELD_LENGTHS.LAST_NAME_MAX })
+    .withMessage(VALIDATION_MESSAGES.LAST_NAME.TOO_LONG)
 ];
 
 const loginValidator = [
   body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email')
+    .isEmail().withMessage(VALIDATION_MESSAGES.EMAIL.INVALID)
     .normalizeEmail(),
   body('password')
-    .notEmpty()
-    .withMessage('Password is required')
+    .notEmpty().withMessage(VALIDATION_MESSAGES.PASSWORD.REQUIRED)
 ];
 
 const refreshTokenValidator = [
   body('refreshToken')
-    .notEmpty()
-    .withMessage('Refresh token is required')
+    .notEmpty().withMessage(VALIDATION_MESSAGES.TOKEN.REFRESH_REQUIRED)
 ];
 
 module.exports = {

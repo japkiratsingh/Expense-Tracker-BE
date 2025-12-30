@@ -1,16 +1,24 @@
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
 const { JWT_SECRET } = require('../config');
+const {
+  ERROR_MESSAGES,
+  HTTP_STATUS,
+  AUTH_CONSTANTS
+} = require('../constants');
 
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError('No token provided', 401);
+    if (!authHeader || !authHeader.startsWith(AUTH_CONSTANTS.JWT.BEARER_PREFIX)) {
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.NO_TOKEN_PROVIDED,
+        HTTP_STATUS.UNAUTHORIZED
+      );
     }
 
-    const token = authHeader.substring(7);
+    const token = authHeader.substring(AUTH_CONSTANTS.JWT.BEARER_PREFIX_LENGTH);
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
@@ -18,9 +26,15 @@ const authenticate = async (req, res, next) => {
       next();
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
-        throw new AppError('Token expired', 401);
+        throw new AppError(
+          ERROR_MESSAGES.AUTH.TOKEN_EXPIRED,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
-      throw new AppError('Invalid token', 401);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.INVALID_TOKEN,
+        HTTP_STATUS.UNAUTHORIZED
+      );
     }
   } catch (error) {
     next(error);
@@ -31,8 +45,8 @@ const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+    if (authHeader && authHeader.startsWith(AUTH_CONSTANTS.JWT.BEARER_PREFIX)) {
+      const token = authHeader.substring(AUTH_CONSTANTS.JWT.BEARER_PREFIX_LENGTH);
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded;

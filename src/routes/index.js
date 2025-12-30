@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { COMMON_CONSTANTS, RESPONSE_MESSAGES } = require('../constants');
 
 // Import route modules
 const authRoutes = require('./auth.routes');
@@ -20,8 +21,8 @@ router.use('/auth', authRoutes);
 // Health check for API
 router.get('/health', (req, res) => {
   res.json({
-    success: true,
-    message: 'API is running',
+    success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+    message: RESPONSE_MESSAGES.GENERAL.API_RUNNING,
     timestamp: new Date().toISOString()
   });
 });

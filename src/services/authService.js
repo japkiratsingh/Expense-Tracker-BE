@@ -3,7 +3,13 @@ const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/UserRepository');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
-const { JWT_SECRET, JWT_EXPIRY, REFRESH_TOKEN_EXPIRY } = require('../config');
+const { JWT_SECRET, JWT_EXPIRY, REFRESH_TOKEN_EXPIRY, BCRYPT_ROUNDS } = require('../config');
+const {
+  ERROR_MESSAGES,
+  RESPONSE_MESSAGES,
+  HTTP_STATUS,
+  AUTH_CONSTANTS
+} = require('../constants');
 
 class AuthService {
   async register(userData) {
@@ -12,11 +18,14 @@ class AuthService {
     // Check if user exists
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      throw new AppError('Email already registered', 400);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.EMAIL_ALREADY_REGISTERED,
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // Create user
     const user = new User({
@@ -41,16 +50,25 @@ class AuthService {
   async login(email, password) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        HTTP_STATUS.UNAUTHORIZED
+      );
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        HTTP_STATUS.UNAUTHORIZED
+      );
     }
 
     if (!user.isActive) {
-      throw new AppError('Account is deactivated', 403);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.ACCOUNT_DEACTIVATED,
+        HTTP_STATUS.FORBIDDEN
+      );
     }
 
     // Update last login
@@ -90,7 +108,10 @@ class AuthService {
       const user = await userRepository.findById(decoded.userId);
 
       if (!user || !user.isActive) {
-        throw new AppError('Invalid token', 401);
+        throw new AppError(
+          ERROR_MESSAGES.AUTH.INVALID_TOKEN,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       const { accessToken, refreshToken: newRefreshToken } =
@@ -101,14 +122,20 @@ class AuthService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Invalid or expired refresh token', 401);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.INVALID_REFRESH_TOKEN,
+        HTTP_STATUS.UNAUTHORIZED
+      );
     }
   }
 
   async getCurrentUser(userId) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError(
+        ERROR_MESSAGES.AUTH.USER_NOT_FOUND,
+        HTTP_STATUS.NOT_FOUND
+      );
     }
     return new User(user).toJSON();
   }

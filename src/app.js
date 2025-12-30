@@ -7,6 +7,7 @@ const config = require('./config');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
+const { COMMON_CONSTANTS, RESPONSE_MESSAGES, ERROR_MESSAGES } = require('./constants');
 
 const app = express();
 
@@ -20,15 +21,15 @@ app.use(cors({
 }));
 
 // Logging
-if (config.NODE_ENV === 'development') {
+if (config.NODE_ENV === COMMON_CONSTANTS.ENVIRONMENTS.DEVELOPMENT) {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
 }
 
 // Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: config.BODY_PARSER_JSON_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: config.BODY_PARSER_URLENCODED_LIMIT }));
 
 // Static files (for serving uploaded files)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -37,6 +38,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    message: RESPONSE_MESSAGES.GENERAL.API_RUNNING,
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -47,7 +49,8 @@ app.use('/api', routes);
 
 // 404 handler
 app.use((req, res, next) => {
-  next(new AppError(`Route ${req.originalUrl} not found`, 404));
+  const message = ERROR_MESSAGES.GENERAL.ROUTE_NOT_FOUND.replace('{{route}}', req.originalUrl);
+  next(new AppError(message, 404));
 });
 
 // Global error handler

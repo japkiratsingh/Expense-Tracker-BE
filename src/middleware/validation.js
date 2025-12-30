@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const AppError = require('../utils/AppError');
+const { ERROR_MESSAGES, HTTP_STATUS } = require('../constants');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -11,7 +12,11 @@ const validate = (req, res, next) => {
       value: err.value
     }));
 
-    throw new AppError('Validation failed', 400, errorMessages);
+    throw new AppError(
+      ERROR_MESSAGES.VALIDATION.FAILED,
+      HTTP_STATUS.BAD_REQUEST,
+      errorMessages
+    );
   }
 
   next();

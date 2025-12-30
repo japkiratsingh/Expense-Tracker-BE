@@ -27,13 +27,25 @@ module.exports = {
     INTERNAL_SERVER_ERROR: 'Internal Server Error'
   },
 
-  // Expense Errors (for future use)
+  // Expense Errors
   EXPENSE: {
     NOT_FOUND: 'Expense not found',
     UNAUTHORIZED_ACCESS: 'Unauthorized to access this expense',
     CATEGORY_NOT_FOUND: 'Category not found',
     INVALID_CATEGORY: 'Invalid category',
     INVALID_TAG: 'Invalid tag',
-    TAG_NOT_FOUND: 'Tag not found'
+    TAG_NOT_FOUND: 'Tag not found',
+    INVALID_AMOUNT: 'Invalid amount',
+    INVALID_DATE: 'Invalid date',
+    INVALID_PAYMENT_METHOD: 'Invalid payment method',
+    INVALID_EXPORT_FORMAT: 'Invalid export format',
+    IMPORT_FAILED: 'Failed to import expenses',
+    INVALID_IMPORT_DATA: 'Invalid import data format'
+  },
+
+  // Category Errors
+  CATEGORY: {
+    NOT_FOUND: 'Category not found',
+    UNAUTHORIZED_ACCESS: 'Unauthorized to access this category'
   }
 };

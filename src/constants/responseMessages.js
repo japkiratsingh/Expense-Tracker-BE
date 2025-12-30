@@ -25,11 +25,16 @@ module.exports = {
     PASSWORD_CHANGED: 'Password changed successfully'
   },
 
-  // Expense (for future use)
+  // Expense
   EXPENSE: {
     CREATED: 'Expense created successfully',
     UPDATED: 'Expense updated successfully',
-    DELETED: 'Expense deleted successfully'
+    DELETED: 'Expense deleted successfully',
+    FETCHED: 'Expense fetched successfully',
+    LIST_FETCHED: 'Expenses list fetched successfully',
+    EXPORTED: 'Expenses exported successfully',
+    IMPORTED: 'Expenses imported successfully',
+    STATS_FETCHED: 'Statistics fetched successfully'
   },
 
   // Category (for future use)

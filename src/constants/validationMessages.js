@@ -36,18 +36,44 @@ module.exports = {
     REFRESH_REQUIRED: 'Refresh token is required'
   },
 
-  // Expense Validation (for future use)
+  // Expense Validation
   EXPENSE: {
     AMOUNT: {
       REQUIRED: 'Amount is required',
-      POSITIVE: 'Amount must be a positive number'
+      POSITIVE: 'Amount must be a positive number',
+      INVALID: 'Amount must be a valid number',
+      TOO_LARGE: 'Amount is too large (max: {{max}})',
+      MIN: 'Amount must be at least {{min}}'
     },
     DESCRIPTION: {
       REQUIRED: 'Description is required',
-      TOO_LONG: 'Description is too long'
+      EMPTY: 'Description cannot be empty',
+      TOO_LONG: 'Description must not exceed {{max}} characters',
+      TOO_SHORT: 'Description must be at least {{min}} character'
     },
     DATE: {
-      INVALID: 'Invalid date format'
+      REQUIRED: 'Date is required',
+      INVALID: 'Date must be in YYYY-MM-DD format',
+      FUTURE: 'Date cannot be in the future'
+    },
+    CATEGORY: {
+      INVALID: 'Invalid category ID format'
+    },
+    TAGS: {
+      INVALID: 'Tags must be an array of UUIDs'
+    },
+    PAYMENT_METHOD: {
+      INVALID: 'Invalid payment method'
+    },
+    NOTES: {
+      TOO_LONG: 'Notes must not exceed {{max}} characters'
+    },
+    ID: {
+      REQUIRED: 'Expense ID is required',
+      INVALID: 'Invalid expense ID format'
+    },
+    EXPORT_FORMAT: {
+      INVALID: 'Export format must be either json or csv'
     }
   }
 };

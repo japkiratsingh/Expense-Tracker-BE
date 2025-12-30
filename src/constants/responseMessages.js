@@ -44,5 +44,19 @@ module.exports = {
     CREATED: 'Tag created successfully',
     UPDATED: 'Tag updated successfully',
     DELETED: 'Tag deleted successfully'
+  },
+
+  // Recurring Expense
+  RECURRING: {
+    CREATED: 'Recurring expense created successfully',
+    UPDATED: 'Recurring expense updated successfully',
+    DELETED: 'Recurring expense deleted successfully',
+    FETCHED: 'Recurring expense fetched successfully',
+    LIST_FETCHED: 'Recurring expenses list fetched successfully',
+    PAUSED: 'Recurring expense paused successfully',
+    RESUMED: 'Recurring expense resumed successfully',
+    GENERATED: 'Expense generated successfully from recurring template',
+    HISTORY_FETCHED: 'Generated expenses history fetched successfully',
+    UPCOMING_FETCHED: 'Upcoming recurring expenses fetched successfully'
   }
 };

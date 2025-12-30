@@ -48,6 +48,37 @@ module.exports = {
     },
     DATE: {
       INVALID: 'Invalid date format'
+    },
+    CATEGORY: {
+      INVALID: 'Category ID must be a valid UUID'
+    },
+    TAGS: {
+      INVALID: 'Tags must be an array'
+    }
+  },
+
+  // Recurring Expense Validation
+  RECURRING: {
+    FREQUENCY: {
+      REQUIRED: 'Frequency is required',
+      INVALID: 'Frequency must be one of: daily, weekly, monthly, yearly'
+    },
+    START_DATE: {
+      REQUIRED: 'Start date is required',
+      INVALID: 'Start date must be in YYYY-MM-DD format'
+    },
+    END_DATE: {
+      INVALID: 'End date must be in YYYY-MM-DD format',
+      BEFORE_START: 'End date must be after start date'
+    },
+    INTERVAL: {
+      INVALID: 'Interval count must be between {{min}} and {{max}}'
+    },
+    DAY_OF_MONTH: {
+      INVALID: 'Day of month must be between 1 and 31'
+    },
+    DAY_OF_WEEK: {
+      INVALID: 'Day of week must be between 0 (Sunday) and 6 (Saturday)'
     }
   }
 };

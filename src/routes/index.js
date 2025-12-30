@@ -8,7 +8,7 @@ const authRoutes = require('./auth.routes');
 // const expenseRoutes = require('./expense.routes');
 // const categoryRoutes = require('./category.routes');
 // const tagRoutes = require('./tag.routes');
-// const recurringRoutes = require('./recurring.routes');
+const recurringRoutes = require('./recurring.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -16,7 +16,7 @@ router.use('/auth', authRoutes);
 // router.use('/expenses', expenseRoutes);
 // router.use('/categories', categoryRoutes);
 // router.use('/tags', tagRoutes);
-// router.use('/recurring', recurringRoutes);
+router.use('/recurring', recurringRoutes);
 
 // Health check for API
 router.get('/health', (req, res) => {

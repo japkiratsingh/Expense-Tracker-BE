@@ -8,7 +8,13 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["expense-tracker", "backend", "api", "jwt", "express"],
+  "keywords": [
+    "expense-tracker",
+    "backend",
+    "api",
+    "jwt",
+    "express"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

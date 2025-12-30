@@ -6,51 +6,65 @@
 module.exports = {
   // Authentication
   AUTH: {
-    REGISTRATION_SUCCESS: 'User registered successfully',
-    LOGIN_SUCCESS: 'Login successful',
-    LOGOUT_SUCCESS: 'Logout successful',
-    TOKEN_REFRESHED: 'Token refreshed successfully'
+    REGISTRATION_SUCCESS: "User registered successfully",
+    LOGIN_SUCCESS: "Login successful",
+    LOGOUT_SUCCESS: "Logout successful",
+    TOKEN_REFRESHED: "Token refreshed successfully",
   },
 
   // General
   GENERAL: {
-    SUCCESS: 'Operation completed successfully',
-    API_RUNNING: 'API is running'
+    SUCCESS: "Operation completed successfully",
+    API_RUNNING: "API is running",
   },
 
   // User
   USER: {
-    UPDATED: 'User updated successfully',
-    DELETED: 'User deleted successfully',
-    PASSWORD_CHANGED: 'Password changed successfully'
+    UPDATED: "User updated successfully",
+    DELETED: "User deleted successfully",
+    PASSWORD_CHANGED: "Password changed successfully",
   },
 
   // Expense
   EXPENSE: {
-    CREATED: 'Expense created successfully',
-    UPDATED: 'Expense updated successfully',
-    DELETED: 'Expense deleted successfully',
-    FETCHED: 'Expense fetched successfully',
-    LIST_FETCHED: 'Expenses list fetched successfully',
-    EXPORTED: 'Expenses exported successfully',
-    IMPORTED: 'Expenses imported successfully',
-    STATS_FETCHED: 'Statistics fetched successfully'
+    CREATED: "Expense created successfully",
+    UPDATED: "Expense updated successfully",
+    DELETED: "Expense deleted successfully",
+    FETCHED: "Expense fetched successfully",
+    LIST_FETCHED: "Expenses list fetched successfully",
+    EXPORTED: "Expenses exported successfully",
+    IMPORTED: "Expenses imported successfully",
+    STATS_FETCHED: "Statistics fetched successfully",
   },
 
   // Category (for future use)
   CATEGORY: {
-    CREATED: 'Category created successfully',
-    UPDATED: 'Category updated successfully',
-    DELETED: 'Category deleted successfully'
+    CREATED: "Category created successfully",
+    UPDATED: "Category updated successfully",
+    DELETED: "Category deleted successfully",
   },
 
   // Tag
   TAG: {
-    CREATED: 'Tag created successfully',
-    UPDATED: 'Tag updated successfully',
-    DELETED: 'Tag deleted successfully',
-    MERGED: 'Tags merged successfully',
-    FETCHED: 'Tag fetched successfully',
-    LIST_FETCHED: 'Tags list fetched successfully'
-  }
+    CREATED: "Tag created successfully",
+    UPDATED: "Tag updated successfully",
+    DELETED: "Tag deleted successfully",
+    MERGED: "Tags merged successfully",
+    FETCHED: "Tag fetched successfully",
+    LIST_FETCHED: "Tags list fetched successfully",
+  },
+
+  // Recurring Expense
+  RECURRING: {
+    CREATED: "Recurring expense created successfully",
+    UPDATED: "Recurring expense updated successfully",
+    DELETED: "Recurring expense deleted successfully",
+    FETCHED: "Recurring expense fetched successfully",
+    LIST_FETCHED: "Recurring expenses list fetched successfully",
+    PAUSED: "Recurring expense paused successfully",
+    RESUMED: "Recurring expense resumed successfully",
+    GENERATED: "Expense generated successfully from recurring template",
+    HISTORY_FETCHED: "Generated expenses history fetched successfully",
+    UPCOMING_FETCHED: "Upcoming recurring expenses fetched successfully",
+  },
 };

@@ -1,5 +1,6 @@
 const app = require('./src/app');
 const config = require('./src/config');
+const schedulerService = require('./src/services/schedulerService');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -50,6 +51,10 @@ async function startServer() {
     await ensureDirectories();
     await ensureDataFiles();
 
+    // Start recurring expense scheduler
+    schedulerService.start();
+    console.log('Recurring expense scheduler initialized');
+
     // Start server
     const server = app.listen(config.PORT, () => {
       console.log(`
@@ -63,12 +68,14 @@ Time: ${new Date().toISOString()}
 
 API Base: http://localhost:${config.PORT}/api
 Health Check: http://localhost:${config.PORT}/health
+Scheduler: ${schedulerService.getStatus().isRunning ? 'Running' : 'Stopped'}
       `);
     });
 
     // Graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM received, shutting down gracefully...');
+      schedulerService.stop();
       server.close(() => {
         console.log('Server closed');
         process.exit(0);
@@ -77,6 +84,7 @@ Health Check: http://localhost:${config.PORT}/health
 
     process.on('SIGINT', () => {
       console.log('SIGINT received, shutting down gracefully...');
+      schedulerService.stop();
       server.close(() => {
         console.log('Server closed');
         process.exit(0);

@@ -59,5 +59,17 @@ module.exports = {
     CANNOT_DELETE_IN_USE: 'Cannot delete tag that is in use by expenses',
     MERGE_TARGET_NOT_FOUND: 'Target tag for merge not found',
     CANNOT_MERGE_SAME_TAG: 'Cannot merge a tag with itself'
+  },
+
+  // Recurring Expense Errors
+  RECURRING: {
+    NOT_FOUND: 'Recurring expense not found',
+    UNAUTHORIZED_ACCESS: 'Unauthorized to access this recurring expense',
+    INVALID_FREQUENCY: 'Invalid frequency',
+    INVALID_START_DATE: 'Invalid start date',
+    INVALID_END_DATE: 'Invalid end date or end date must be after start date',
+    ALREADY_PAUSED: 'Recurring expense is already paused',
+    ALREADY_ACTIVE: 'Recurring expense is already active',
+    GENERATION_FAILED: 'Failed to generate expense from recurring template'
   }
 };

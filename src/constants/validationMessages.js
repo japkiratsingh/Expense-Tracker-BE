@@ -36,6 +36,15 @@ module.exports = {
     REFRESH_REQUIRED: 'Refresh token is required'
   },
 
+  // General Validations
+  ID_REQUIRED: 'ID is required',
+  INVALID_FORMAT: 'Invalid format',
+
+  // Date Validation
+  DATE: {
+    INVALID: 'Invalid date format'
+  },
+
   // Expense Validation (for future use)
   EXPENSE: {
     AMOUNT: {

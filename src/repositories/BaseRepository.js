@@ -60,13 +60,23 @@ class BaseRepository {
     }
 
     return this.data.filter(item => {
-      return Object.keys(query).every(key => {
-        if (typeof query[key] === 'object' && query[key] !== null && !Array.isArray(query[key])) {
-          // Support for operators like $in, $gte, etc.
-          return this.matchOperators(item[key], query[key]);
-        }
-        return item[key] === query[key];
-      });
+      return this.matchQuery(item, query);
+    });
+  }
+
+  // Match a single item against a query
+  matchQuery(item, query) {
+    return Object.keys(query).every(key => {
+      // Handle $or operator specially
+      if (key === '$or') {
+        return query.$or.some(subQuery => this.matchQuery(item, subQuery));
+      }
+
+      if (typeof query[key] === 'object' && query[key] !== null && !Array.isArray(query[key])) {
+        // Support for operators like $in, $gte, $regex, etc.
+        return this.matchOperators(item[key], query[key]);
+      }
+      return item[key] === query[key];
     });
   }
 
@@ -123,6 +133,13 @@ class BaseRepository {
   matchOperators(value, operators) {
     if (operators.$in) {
       return operators.$in.includes(value);
+    }
+    if (operators.$regex !== undefined) {
+      // Handle regex matching
+      const regex = operators.$regex instanceof RegExp
+        ? operators.$regex
+        : new RegExp(operators.$regex);
+      return regex.test(String(value));
     }
     if (operators.$gte !== undefined && operators.$lte !== undefined) {
       return value >= operators.$gte && value <= operators.$lte;

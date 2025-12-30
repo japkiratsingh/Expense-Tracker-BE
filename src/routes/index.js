@@ -8,6 +8,7 @@ const categoryRoutes = require('./category.routes');
 const tagRoutes = require('./tag.routes');
 const expenseRoutes = require('./expense.routes');
 const recurringRoutes = require('./recurring.routes');
+const attachmentRoutes = require('./attachment.routes');
 // const userRoutes = require('./user.routes');
 
 // Mount routes
@@ -16,6 +17,7 @@ router.use('/categories', categoryRoutes);
 router.use('/tags', tagRoutes);
 router.use('/expenses', expenseRoutes);
 router.use('/recurring', recurringRoutes);
+router.use('/attachments', attachmentRoutes);
 // router.use('/users', userRoutes);
 
 // Health check for API

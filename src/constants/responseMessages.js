@@ -67,4 +67,12 @@ module.exports = {
     HISTORY_FETCHED: "Generated expenses history fetched successfully",
     UPCOMING_FETCHED: "Upcoming recurring expenses fetched successfully",
   },
+
+  // Attachment
+  ATTACHMENT: {
+    UPLOADED: 'Attachment uploaded successfully',
+    DELETED: 'Attachment deleted successfully',
+    FETCHED: 'Attachment fetched successfully',
+    LIST_FETCHED: 'Attachments list fetched successfully'
+  }
 };

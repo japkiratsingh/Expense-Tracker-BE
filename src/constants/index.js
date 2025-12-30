@@ -14,6 +14,7 @@ const CATEGORY_CONSTANTS = require('./categoryConstants');
 const TAG_CONSTANTS = require('./tagConstants');
 const EXPENSE_CONSTANTS = require('./expenseConstants');
 const RECURRING_CONSTANTS = require('./recurringConstants');
+const ATTACHMENT_CONSTANTS = require('./attachmentConstants');
 
 module.exports = {
   HTTP_STATUS,
@@ -26,5 +27,6 @@ module.exports = {
   CATEGORY_CONSTANTS,
   TAG_CONSTANTS,
   EXPENSE_CONSTANTS,
-  RECURRING_CONSTANTS
+  RECURRING_CONSTANTS,
+  ATTACHMENT_CONSTANTS
 };

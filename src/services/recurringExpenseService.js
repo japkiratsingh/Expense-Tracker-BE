@@ -184,6 +184,24 @@ class RecurringExpenseService {
     return new RecurringExpense(updated).toJSON();
   }
 
+  async toggleActive(userId, recurringId) {
+    const recurring = await recurringExpenseRepository.findByUserIdAndId(userId, recurringId);
+    if (!recurring) {
+      throw new AppError(
+        ERROR_MESSAGES.RECURRING.NOT_FOUND,
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    const newActiveState = !recurring.isActive;
+    const updated = await recurringExpenseRepository.updateByUserIdAndId(
+      userId,
+      recurringId,
+      { isActive: newActiveState }
+    );
+    return new RecurringExpense(updated).toJSON();
+  }
+
   /**
    * Manually generate an expense from a recurring template
    */

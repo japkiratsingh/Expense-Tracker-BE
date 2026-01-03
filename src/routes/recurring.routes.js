@@ -25,6 +25,7 @@ router.delete('/:id', recurringIdValidator, validate, recurringExpenseController
 // State management
 router.put('/:id/pause', recurringIdValidator, validate, recurringExpenseController.pauseRecurring);
 router.put('/:id/resume', recurringIdValidator, validate, recurringExpenseController.resumeRecurring);
+router.patch('/:id/toggle-active', recurringIdValidator, validate, recurringExpenseController.toggleActive);
 
 // Expense generation
 router.post('/:id/generate', recurringIdValidator, validate, recurringExpenseController.generateExpense);

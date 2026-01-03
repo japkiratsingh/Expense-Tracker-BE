@@ -109,6 +109,24 @@ class RecurringExpenseController {
     }
   }
 
+  async toggleActive(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const recurringId = req.params.id;
+      const recurring = await recurringExpenseService.toggleActive(userId, recurringId);
+      const message = recurring.isActive
+        ? RESPONSE_MESSAGES.RECURRING.RESUMED
+        : RESPONSE_MESSAGES.RECURRING.PAUSED;
+      res.status(HTTP_STATUS.OK).json({
+        success: COMMON_CONSTANTS.RESPONSE_STATUS.SUCCESS,
+        message,
+        data: { recurring }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async generateExpense(req, res, next) {
     try {
       const userId = req.user.userId;

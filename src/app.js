@@ -15,9 +15,13 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS
+// CORS - Allow all origins while supporting credentials
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or same-origin)
+    // or allow any origin for development
+    callback(null, true);
+  },
   credentials: true
 }));
 

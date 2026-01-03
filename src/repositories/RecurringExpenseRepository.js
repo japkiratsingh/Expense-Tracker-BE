@@ -1,58 +1,82 @@
-const path = require('path');
-const BaseRepository = require('./BaseRepository');
+const RecurringExpense = require('../models/RecurringExpense');
 
-class RecurringExpenseRepository extends BaseRepository {
-  constructor() {
-    super(path.join(__dirname, '../../data/recurring-expenses.json'));
+class RecurringExpenseRepository {
+  async findById(id) {
+    return await RecurringExpense.findById(id).lean();
+  }
+
+  async find(query = {}) {
+    return await RecurringExpense.find(query).lean();
+  }
+
+  async findOne(query) {
+    return await RecurringExpense.findOne(query).lean();
+  }
+
+  async create(data) {
+    const recurringExpense = new RecurringExpense(data);
+    await recurringExpense.save();
+    return recurringExpense.toJSON();
+  }
+
+  async updateById(id, updates) {
+    const recurringExpense = await RecurringExpense.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+    return recurringExpense;
+  }
+
+  async deleteById(id) {
+    const result = await RecurringExpense.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async count(query = {}) {
+    return await RecurringExpense.countDocuments(query);
   }
 
   async findByUserId(userId) {
-    return this.find({ userId });
+    return await this.find({ userId });
   }
 
   async findActiveByUserId(userId) {
-    const recurring = await this.findByUserId(userId);
-    return recurring.filter(r => r.isActive);
+    return await RecurringExpense.find({ userId, isActive: true }).lean();
   }
 
   async findByUserIdAndId(userId, recurringId) {
-    const recurring = await this.findById(recurringId);
-    if (!recurring || recurring.userId !== userId) {
-      return null;
-    }
-    return recurring;
+    return await RecurringExpense.findOne({ _id: recurringId, userId }).lean();
   }
 
   async deleteByUserIdAndId(userId, recurringId) {
-    const recurring = await this.findByUserIdAndId(userId, recurringId);
-    if (!recurring) {
-      return null;
-    }
-    return this.deleteById(recurringId);
+    const result = await RecurringExpense.findOneAndDelete({ _id: recurringId, userId });
+    return !!result;
   }
 
   async updateByUserIdAndId(userId, recurringId, updates) {
-    const recurring = await this.findByUserIdAndId(userId, recurringId);
-    if (!recurring) {
-      return null;
-    }
-    return this.updateById(recurringId, updates);
+    return await RecurringExpense.findOneAndUpdate(
+      { _id: recurringId, userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
   }
 
   /**
    * Find all recurring expenses that should generate today
    */
   async findDueForGeneration() {
-    await this.ensureLoaded();
     const today = new Date().toISOString().split('T')[0];
 
-    return this.data.filter(recurring => {
-      if (!recurring.isActive) return false;
-      if (recurring.nextOccurrence !== today) return false;
-      if (recurring.lastGenerated === today) return false;
-      if (recurring.endDate && today > recurring.endDate) return false;
-      return true;
-    });
+    return await RecurringExpense.find({
+      isActive: true,
+      nextOccurrence: today,
+      lastGenerated: { $ne: today },
+      $or: [
+        { endDate: null },
+        { endDate: { $gte: today } }
+      ]
+    }).lean();
   }
 
   /**
@@ -66,11 +90,14 @@ class RecurringExpenseRepository extends BaseRepository {
     const todayStr = today.toISOString().split('T')[0];
     const futureStr = futureDate.toISOString().split('T')[0];
 
-    const recurring = await this.findActiveByUserId(userId);
-
-    return recurring.filter(r => {
-      return r.nextOccurrence >= todayStr && r.nextOccurrence <= futureStr;
-    }).sort((a, b) => a.nextOccurrence.localeCompare(b.nextOccurrence));
+    return await RecurringExpense.find({
+      userId,
+      isActive: true,
+      nextOccurrence: {
+        $gte: todayStr,
+        $lte: futureStr
+      }
+    }).sort({ nextOccurrence: 1 }).lean();
   }
 }
 

@@ -1,46 +1,47 @@
-class Tag {
-  constructor(data = {}) {
-    this._id = data._id || null;
-    this.userId = data.userId || null;
-    this.name = data.name || '';
-    this.color = data.color || '#808080'; // Default gray color
-    this.createdAt = data.createdAt || new Date().toISOString();
-    this.updatedAt = data.updatedAt || new Date().toISOString();
-  }
+const mongoose = require('mongoose');
 
-  toJSON() {
-    return { ...this };
-  }
-
-  static fromJSON(json) {
-    return new Tag(json);
-  }
-
-  validate() {
-    const errors = [];
-
-    if (!this.userId) {
-      errors.push('User ID is required');
+const tagSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: [50, 'Tag name must not exceed 50 characters']
+  },
+  color: {
+    type: String,
+    default: '#808080', // Default gray color
+    validate: {
+      validator: function(v) {
+        return /^#[0-9A-Fa-f]{6}$/.test(v);
+      },
+      message: 'Color must be a valid hex color (e.g., #FF5733)'
     }
-
-    if (!this.name || this.name.trim().length === 0) {
-      errors.push('Tag name is required');
-    }
-
-    if (this.name && this.name.length > 50) {
-      errors.push('Tag name must not exceed 50 characters');
-    }
-
-    // Validate color format (hex color)
-    if (this.color && !/^#[0-9A-Fa-f]{6}$/.test(this.color)) {
-      errors.push('Color must be a valid hex color (e.g., #FF5733)');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+  },
+  description: {
+    type: String,
+    default: null
   }
-}
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      if (ret.userId) ret.userId = ret.userId.toString();
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
+
+// Add compound index for unique tag names per user
+tagSchema.index({ userId: 1, name: 1 }, { unique: true });
+
+const Tag = mongoose.model('Tag', tagSchema);
 
 module.exports = Tag;

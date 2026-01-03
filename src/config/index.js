@@ -12,7 +12,8 @@ const DEFAULTS = {
   JWT_SECRET: 'your-secret-key-change-in-production',
   DATA_DIR: './data',
   UPLOAD_DIR: './uploads',
-  CORS_ORIGIN: '*'
+  CORS_ORIGIN: '*',
+  MONGODB_URI: 'mongodb://localhost:27017/expense-tracker'
 };
 
 module.exports = {
@@ -24,6 +25,9 @@ module.exports = {
   JWT_SECRET: process.env.JWT_SECRET || DEFAULTS.JWT_SECRET,
   JWT_EXPIRY: process.env.JWT_EXPIRY || AUTH_CONSTANTS.JWT.DEFAULT_EXPIRY,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || AUTH_CONSTANTS.JWT.DEFAULT_REFRESH_EXPIRY,
+
+  // MongoDB Configuration
+  MONGODB_URI: process.env.MONGODB_URI || DEFAULTS.MONGODB_URI,
 
   // Storage Configuration
   DATA_DIR: process.env.DATA_DIR || DEFAULTS.DATA_DIR,

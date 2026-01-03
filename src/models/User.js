@@ -1,41 +1,79 @@
+const mongoose = require('mongoose');
 const { USER_CONSTANTS, AUTH_CONSTANTS } = require('../constants');
 
-class User {
-  constructor(data = {}) {
-    this._id = data._id || null;
-    this.email = data.email || '';
-    this.password = data.password || ''; // Hashed
-    this.firstName = data.firstName || '';
-    this.lastName = data.lastName || '';
-    this.profilePicture = data.profilePicture || null;
-    this.defaultCurrency = data.defaultCurrency || USER_CONSTANTS.DEFAULTS.CURRENCY;
-    this.preferences = data.preferences || this._getDefaultPreferences();
-    this.createdAt = data.createdAt || new Date().toISOString();
-    this.updatedAt = data.updatedAt || new Date().toISOString();
-    this.isActive = data.isActive !== undefined ? data.isActive : AUTH_CONSTANTS.USER_STATUS.ACTIVE;
-    this.lastLogin = data.lastLogin || null;
-  }
-
-  _getDefaultPreferences() {
-    return {
-      dateFormat: USER_CONSTANTS.DEFAULTS.DATE_FORMAT,
-      theme: USER_CONSTANTS.DEFAULTS.THEME,
-      notifications: {
-        email: USER_CONSTANTS.NOTIFICATIONS.EMAIL.DEFAULT,
-        recurringReminders: USER_CONSTANTS.NOTIFICATIONS.RECURRING_REMINDERS.DEFAULT
+const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  firstName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  defaultCurrency: {
+    type: String,
+    default: USER_CONSTANTS.DEFAULTS.CURRENCY
+  },
+  preferences: {
+    dateFormat: {
+      type: String,
+      default: USER_CONSTANTS.DEFAULTS.DATE_FORMAT
+    },
+    theme: {
+      type: String,
+      default: USER_CONSTANTS.DEFAULTS.THEME
+    },
+    notifications: {
+      email: {
+        type: Boolean,
+        default: USER_CONSTANTS.NOTIFICATIONS.EMAIL.DEFAULT
+      },
+      recurringReminders: {
+        type: Boolean,
+        default: USER_CONSTANTS.NOTIFICATIONS.RECURRING_REMINDERS.DEFAULT
       }
-    };
+    }
+  },
+  isActive: {
+    type: Boolean,
+    default: AUTH_CONSTANTS.USER_STATUS.ACTIVE
+  },
+  lastLogin: {
+    type: Date,
+    default: null
   }
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      delete ret.password; // Never expose password
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
 
-  toJSON() {
-    const obj = { ...this };
-    delete obj.password; // Never expose password
-    return obj;
-  }
+// Add index on email for faster lookups
+userSchema.index({ email: 1 });
 
-  static fromJSON(json) {
-    return new User(json);
-  }
-}
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

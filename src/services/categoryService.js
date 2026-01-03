@@ -3,14 +3,14 @@
  * Business logic for category management
  */
 
-const CategoryRepository = require('../repositories/CategoryRepository');
+const categoryRepository = require('../repositories/CategoryRepository');
 const Category = require('../models/Category');
 const AppError = require('../utils/AppError');
 const { HTTP_STATUS, CATEGORY_CONSTANTS } = require('../constants');
 
 class CategoryService {
   constructor() {
-    this.categoryRepository = new CategoryRepository();
+    this.categoryRepository = categoryRepository;
   }
 
   /**

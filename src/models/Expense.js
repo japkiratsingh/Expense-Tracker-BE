@@ -1,81 +1,85 @@
-class Expense {
-  constructor(data = {}) {
-    this._id = data._id || null;
-    this.userId = data.userId || null;
-    this.amount = data.amount || 0;
-    this.description = data.description || '';
-    this.date = data.date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    this.categoryId = data.categoryId || null;
-    this.tags = data.tags || []; // Array of tag IDs
-    this.paymentMethod = data.paymentMethod || 'cash'; // cash, credit, debit, online, etc.
-    this.notes = data.notes || '';
-    this.attachments = data.attachments || []; // Array of attachment IDs (for future use)
-    this.isRecurring = data.isRecurring || false;
-    this.recurringExpenseId = data.recurringExpenseId || null;
-    this.createdAt = data.createdAt || new Date().toISOString();
-    this.updatedAt = data.updatedAt || new Date().toISOString();
+const mongoose = require('mongoose');
+
+const expenseSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: [0.01, 'Amount must be a positive number'],
+    max: [999999999.99, 'Amount is too large']
+  },
+  currency: {
+    type: String,
+    default: 'USD',
+    uppercase: true
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: [500, 'Description must not exceed 500 characters']
+  },
+  date: {
+    type: String,
+    required: true,
+    match: [/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format']
+  },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
+  tags: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tag'
+  }],
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'credit', 'debit', 'online', 'check', 'other'],
+    default: 'cash'
+  },
+  notes: {
+    type: String,
+    default: '',
+    maxlength: [1000, 'Notes must not exceed 1000 characters']
+  },
+  hasAttachments: {
+    type: Boolean,
+    default: false
+  },
+  isRecurring: {
+    type: Boolean,
+    default: false
+  },
+  recurringExpenseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'RecurringExpense',
+    default: null
   }
-
-  toJSON() {
-    return { ...this };
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      if (ret.userId) ret.userId = ret.userId.toString();
+      if (ret.categoryId) ret.categoryId = ret.categoryId.toString();
+      if (ret.recurringExpenseId) ret.recurringExpenseId = ret.recurringExpenseId.toString();
+      if (ret.tags) ret.tags = ret.tags.map(tag => typeof tag === 'object' ? tag._id.toString() : tag.toString());
+      delete ret.__v;
+      return ret;
+    }
   }
+});
 
-  static fromJSON(json) {
-    return new Expense(json);
-  }
+// Add compound index for efficient queries
+expenseSchema.index({ userId: 1, date: -1 });
+expenseSchema.index({ userId: 1, categoryId: 1 });
 
-  validate() {
-    const errors = [];
-
-    if (!this.userId) {
-      errors.push('User ID is required');
-    }
-
-    if (!this.amount || this.amount <= 0) {
-      errors.push('Amount must be a positive number');
-    }
-
-    if (this.amount && this.amount > 999999999.99) {
-      errors.push('Amount is too large');
-    }
-
-    if (!this.description || this.description.trim().length === 0) {
-      errors.push('Description is required');
-    }
-
-    if (this.description && this.description.length > 500) {
-      errors.push('Description must not exceed 500 characters');
-    }
-
-    if (!this.date) {
-      errors.push('Date is required');
-    }
-
-    // Validate date format (YYYY-MM-DD)
-    if (this.date && !/^\d{4}-\d{2}-\d{2}$/.test(this.date)) {
-      errors.push('Date must be in YYYY-MM-DD format');
-    }
-
-    // Validate that tags is an array
-    if (this.tags && !Array.isArray(this.tags)) {
-      errors.push('Tags must be an array');
-    }
-
-    // Validate payment method
-    const validPaymentMethods = ['cash', 'credit', 'debit', 'online', 'check', 'other'];
-    if (this.paymentMethod && !validPaymentMethods.includes(this.paymentMethod)) {
-      errors.push(`Payment method must be one of: ${validPaymentMethods.join(', ')}`);
-    }
-
-    if (this.notes && this.notes.length > 1000) {
-      errors.push('Notes must not exceed 1000 characters');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-}
+const Expense = mongoose.model('Expense', expenseSchema);
 
 module.exports = Expense;

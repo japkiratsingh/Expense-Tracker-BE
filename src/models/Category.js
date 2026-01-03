@@ -3,139 +3,106 @@
  * Represents expense categories (both system and user-defined)
  */
 
-const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 const { CATEGORY_CONSTANTS } = require('../constants');
 
-class Category {
-  constructor(data = {}) {
-    this._id = data._id || uuidv4();
-    this.userId = data.userId !== undefined ? data.userId : null; // null for system categories
-    this.name = data.name;
-    this.description = data.description || '';
-    this.color = data.color || CATEGORY_CONSTANTS.COLOR.DEFAULT;
-    this.icon = data.icon || CATEGORY_CONSTANTS.ICON.DEFAULT;
+const categorySchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null, // null for system categories
+    index: true
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: [CATEGORY_CONSTANTS.NAME.MIN_LENGTH, CATEGORY_CONSTANTS.VALIDATION.NAME_TOO_SHORT],
+    maxlength: [CATEGORY_CONSTANTS.NAME.MAX_LENGTH, CATEGORY_CONSTANTS.VALIDATION.NAME_TOO_LONG]
+  },
+  description: {
+    type: String,
+    default: '',
+    maxlength: [CATEGORY_CONSTANTS.DESCRIPTION.MAX_LENGTH, CATEGORY_CONSTANTS.VALIDATION.DESCRIPTION_TOO_LONG]
+  },
+  color: {
+    type: String,
+    default: CATEGORY_CONSTANTS.COLOR.DEFAULT,
+    validate: {
+      validator: function(v) {
+        return CATEGORY_CONSTANTS.COLOR.PATTERN.test(v);
+      },
+      message: CATEGORY_CONSTANTS.VALIDATION.COLOR_INVALID
+    }
+  },
+  icon: {
+    type: String,
+    default: CATEGORY_CONSTANTS.ICON.DEFAULT,
+    maxlength: [CATEGORY_CONSTANTS.ICON.MAX_LENGTH, CATEGORY_CONSTANTS.VALIDATION.ICON_TOO_LONG]
+  },
+  type: {
+    type: String,
+    enum: [CATEGORY_CONSTANTS.TYPE.SYSTEM, CATEGORY_CONSTANTS.TYPE.USER],
+    required: true
+  },
+  budget: {
+    type: Number,
+    default: null,
+    min: [CATEGORY_CONSTANTS.BUDGET.MIN_VALUE, CATEGORY_CONSTANTS.VALIDATION.BUDGET_INVALID],
+    max: [CATEGORY_CONSTANTS.BUDGET.MAX_VALUE, CATEGORY_CONSTANTS.VALIDATION.BUDGET_TOO_LARGE]
+  },
+  parentCategoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
+  isActive: {
+    type: Boolean,
+    default: CATEGORY_CONSTANTS.STATUS.ACTIVE
+  }
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      if (ret.userId) ret.userId = ret.userId.toString();
+      if (ret.parentCategoryId) ret.parentCategoryId = ret.parentCategoryId.toString();
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
+
+// Set type based on userId before validation
+categorySchema.pre('validate', function(next) {
+  if (!this.type) {
     this.type = this.userId ? CATEGORY_CONSTANTS.TYPE.USER : CATEGORY_CONSTANTS.TYPE.SYSTEM;
-    this.budget = data.budget || null;
-    this.parentCategoryId = data.parentCategoryId || null;
-    this.isActive = data.isActive !== undefined ? data.isActive : CATEGORY_CONSTANTS.STATUS.ACTIVE;
-    this.createdAt = data.createdAt || new Date().toISOString();
-    this.updatedAt = data.updatedAt || new Date().toISOString();
   }
+  next();
+});
 
-  /**
-   * Convert to plain object
-   */
-  toJSON() {
-    return {
-      _id: this._id,
-      userId: this.userId,
-      name: this.name,
-      description: this.description,
-      color: this.color,
-      icon: this.icon,
-      type: this.type,
-      budget: this.budget,
-      parentCategoryId: this.parentCategoryId,
-      isActive: this.isActive,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt
-    };
-  }
+// Add indexes for efficient queries
+categorySchema.index({ userId: 1, name: 1 });
+categorySchema.index({ type: 1 });
+categorySchema.index({ userId: 1, isActive: 1 });
 
-  /**
-   * Check if category is a system category
-   */
-  isSystemCategory() {
-    return this.type === CATEGORY_CONSTANTS.TYPE.SYSTEM;
-  }
+// Instance methods
+categorySchema.methods.isSystemCategory = function() {
+  return this.type === CATEGORY_CONSTANTS.TYPE.SYSTEM;
+};
 
-  /**
-   * Check if category is a user category
-   */
-  isUserCategory() {
-    return this.type === CATEGORY_CONSTANTS.TYPE.USER;
-  }
+categorySchema.methods.isUserCategory = function() {
+  return this.type === CATEGORY_CONSTANTS.TYPE.USER;
+};
 
-  /**
-   * Check if category has a budget set
-   */
-  hasBudget() {
-    return this.budget !== null && this.budget > CATEGORY_CONSTANTS.BUDGET.MIN_VALUE;
-  }
+categorySchema.methods.hasBudget = function() {
+  return this.budget !== null && this.budget > CATEGORY_CONSTANTS.BUDGET.MIN_VALUE;
+};
 
-  /**
-   * Check if category is a subcategory
-   */
-  isSubcategory() {
-    return this.parentCategoryId !== null;
-  }
+categorySchema.methods.isSubcategory = function() {
+  return this.parentCategoryId !== null;
+};
 
-  /**
-   * Update timestamp
-   */
-  touch() {
-    this.updatedAt = new Date().toISOString();
-  }
-
-  /**
-   * Validate category data
-   */
-  validate() {
-    const errors = [];
-
-    // Name validation
-    if (!this.name || this.name.trim().length === 0) {
-      errors.push(CATEGORY_CONSTANTS.VALIDATION.NAME_REQUIRED);
-    } else if (this.name.length < CATEGORY_CONSTANTS.NAME.MIN_LENGTH) {
-      errors.push(
-        CATEGORY_CONSTANTS.VALIDATION.NAME_TOO_SHORT
-          .replace('{{min}}', CATEGORY_CONSTANTS.NAME.MIN_LENGTH)
-      );
-    } else if (this.name.length > CATEGORY_CONSTANTS.NAME.MAX_LENGTH) {
-      errors.push(
-        CATEGORY_CONSTANTS.VALIDATION.NAME_TOO_LONG
-          .replace('{{max}}', CATEGORY_CONSTANTS.NAME.MAX_LENGTH)
-      );
-    }
-
-    // Description validation
-    if (this.description && this.description.length > CATEGORY_CONSTANTS.DESCRIPTION.MAX_LENGTH) {
-      errors.push(
-        CATEGORY_CONSTANTS.VALIDATION.DESCRIPTION_TOO_LONG
-          .replace('{{max}}', CATEGORY_CONSTANTS.DESCRIPTION.MAX_LENGTH)
-      );
-    }
-
-    // Color validation
-    if (this.color && !CATEGORY_CONSTANTS.COLOR.PATTERN.test(this.color)) {
-      errors.push(CATEGORY_CONSTANTS.VALIDATION.COLOR_INVALID);
-    }
-
-    // Budget validation
-    if (this.budget !== null) {
-      if (typeof this.budget !== 'number' || this.budget < CATEGORY_CONSTANTS.BUDGET.MIN_VALUE) {
-        errors.push(CATEGORY_CONSTANTS.VALIDATION.BUDGET_INVALID);
-      } else if (this.budget > CATEGORY_CONSTANTS.BUDGET.MAX_VALUE) {
-        errors.push(
-          CATEGORY_CONSTANTS.VALIDATION.BUDGET_TOO_LARGE
-            .replace('{{max}}', CATEGORY_CONSTANTS.BUDGET.MAX_VALUE)
-        );
-      }
-    }
-
-    // Icon validation
-    if (this.icon && this.icon.length > CATEGORY_CONSTANTS.ICON.MAX_LENGTH) {
-      errors.push(
-        CATEGORY_CONSTANTS.VALIDATION.ICON_TOO_LONG
-          .replace('{{max}}', CATEGORY_CONSTANTS.ICON.MAX_LENGTH)
-      );
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-}
+const Category = mongoose.model('Category', categorySchema);
 
 module.exports = Category;

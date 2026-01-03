@@ -1,13 +1,13 @@
 const app = require('./src/app');
 const config = require('./src/config');
+const { connectDB, disconnectDB } = require('./src/config/database');
 const schedulerService = require('./src/services/schedulerService');
 const fs = require('fs').promises;
 const path = require('path');
 
-// Ensure required directories exist
+// Ensure required directories exist (for file uploads)
 async function ensureDirectories() {
   const dirs = [
-    path.join(__dirname, 'data'),
     path.join(__dirname, 'uploads'),
     path.join(__dirname, 'uploads/receipts')
   ];
@@ -22,34 +22,13 @@ async function ensureDirectories() {
   }
 }
 
-// Ensure data files exist
-async function ensureDataFiles() {
-  const dataDir = path.join(__dirname, 'data');
-  const files = [
-    'users.json',
-    'expenses.json',
-    'categories.json',
-    'tags.json',
-    'recurring-expenses.json',
-    'attachments.json'
-  ];
-
-  for (const file of files) {
-    const filePath = path.join(dataDir, file);
-    try {
-      await fs.access(filePath);
-    } catch {
-      await fs.writeFile(filePath, '[]', 'utf8');
-      console.log(`Created data file: ${file}`);
-    }
-  }
-}
-
 async function startServer() {
   try {
-    // Setup
+    // Connect to MongoDB
+    await connectDB();
+
+    // Setup directories for file uploads
     await ensureDirectories();
-    await ensureDataFiles();
 
     // Start recurring expense scheduler
     schedulerService.start();
@@ -68,28 +47,32 @@ Time: ${new Date().toISOString()}
 
 API Base: http://localhost:${config.PORT}/api
 Health Check: http://localhost:${config.PORT}/health
+Database: MongoDB (Connected)
 Scheduler: ${schedulerService.getStatus().isRunning ? 'Running' : 'Stopped'}
       `);
     });
 
     // Graceful shutdown
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM received, shutting down gracefully...');
+    const gracefulShutdown = async (signal) => {
+      console.log(`${signal} received, shutting down gracefully...`);
       schedulerService.stop();
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    });
 
-    process.on('SIGINT', () => {
-      console.log('SIGINT received, shutting down gracefully...');
-      schedulerService.stop();
-      server.close(() => {
+      server.close(async () => {
         console.log('Server closed');
+        await disconnectDB();
+        console.log('Database connection closed');
         process.exit(0);
       });
-    });
+
+      // Force shutdown after 10 seconds
+      setTimeout(() => {
+        console.error('Forcing shutdown after timeout');
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   } catch (error) {
     console.error('Failed to start server:', error);

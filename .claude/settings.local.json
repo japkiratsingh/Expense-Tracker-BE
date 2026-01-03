@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mongosh:*)",
+      "Bash(if [ -f \".env\" ])",
+      "Bash(then grep MONGODB_URI .env)",
+      "Bash(else echo \"No .env file found\")",
+      "Bash(fi)"
+    ]
+  }
+}

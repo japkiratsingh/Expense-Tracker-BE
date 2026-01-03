@@ -1,30 +1,96 @@
-const path = require('path');
-const BaseRepository = require('./BaseRepository');
+const Expense = require('../models/Expense');
 
-class ExpenseRepository extends BaseRepository {
-  constructor() {
-    super(path.join(__dirname, '../../data/expenses.json'));
+class ExpenseRepository {
+  async findById(id) {
+    return await Expense.findById(id).lean();
+  }
+
+  async find(query = {}) {
+    return await Expense.find(query).lean();
+  }
+
+  async findOne(query) {
+    return await Expense.findOne(query).lean();
+  }
+
+  async create(data) {
+    const expense = new Expense(data);
+    await expense.save();
+    return expense.toJSON();
+  }
+
+  async updateById(id, updates) {
+    const expense = await Expense.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+    return expense;
+  }
+
+  async deleteById(id) {
+    const result = await Expense.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async count(query = {}) {
+    return await Expense.countDocuments(query);
   }
 
   async findByUserId(userId, options = {}) {
     const { filters = {}, sort = {}, pagination = {} } = options;
 
-    // Get all expenses for the user
-    let expenses = await this.find({ userId });
+    // Build MongoDB query
+    const query = { userId };
 
     // Apply filters
-    expenses = this.applyFilters(expenses, filters);
+    if (filters.categoryId) {
+      query.categoryId = filters.categoryId;
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      query.tags = { $in: filters.tags };
+    }
+
+    if (filters.startDate || filters.endDate) {
+      query.date = {};
+      if (filters.startDate) query.date.$gte = filters.startDate;
+      if (filters.endDate) query.date.$lte = filters.endDate;
+    }
+
+    if (filters.minAmount !== undefined || filters.maxAmount !== undefined) {
+      query.amount = {};
+      if (filters.minAmount !== undefined) query.amount.$gte = parseFloat(filters.minAmount);
+      if (filters.maxAmount !== undefined) query.amount.$lte = parseFloat(filters.maxAmount);
+    }
+
+    if (filters.paymentMethod) {
+      query.paymentMethod = filters.paymentMethod;
+    }
+
+    if (filters.search) {
+      query.$or = [
+        { description: { $regex: filters.search, $options: 'i' } },
+        { notes: { $regex: filters.search, $options: 'i' } }
+      ];
+    }
+
+    // Get total count for pagination
+    const total = await Expense.countDocuments(query);
 
     // Apply sorting
-    expenses = this.applySort(expenses, sort);
-
-    // Calculate total before pagination
-    const total = expenses.length;
+    const { field = 'date', order = 'desc' } = sort;
+    const sortObj = { [field]: order === 'asc' ? 1 : -1 };
 
     // Apply pagination
     const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
-    expenses = expenses.slice(skip, skip + limit);
+
+    const expenses = await Expense.find(query)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
 
     return {
       expenses,
@@ -37,214 +103,143 @@ class ExpenseRepository extends BaseRepository {
     };
   }
 
-  applyFilters(expenses, filters) {
-    let filtered = [...expenses];
-
-    // Filter by category
-    if (filters.categoryId) {
-      filtered = filtered.filter(e => e.categoryId === filters.categoryId);
-    }
-
-    // Filter by tags (expenses that have ANY of the specified tags)
-    if (filters.tags && filters.tags.length > 0) {
-      filtered = filtered.filter(e =>
-        e.tags && e.tags.some(tag => filters.tags.includes(tag))
-      );
-    }
-
-    // Filter by date range
-    if (filters.startDate) {
-      filtered = filtered.filter(e => e.date >= filters.startDate);
-    }
-    if (filters.endDate) {
-      filtered = filtered.filter(e => e.date <= filters.endDate);
-    }
-
-    // Filter by amount range
-    if (filters.minAmount !== undefined) {
-      filtered = filtered.filter(e => e.amount >= parseFloat(filters.minAmount));
-    }
-    if (filters.maxAmount !== undefined) {
-      filtered = filtered.filter(e => e.amount <= parseFloat(filters.maxAmount));
-    }
-
-    // Filter by payment method
-    if (filters.paymentMethod) {
-      filtered = filtered.filter(e => e.paymentMethod === filters.paymentMethod);
-    }
-
-    // Search in description and notes
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(e =>
-        (e.description && e.description.toLowerCase().includes(searchLower)) ||
-        (e.notes && e.notes.toLowerCase().includes(searchLower))
-      );
-    }
-
-    return filtered;
-  }
-
-  applySort(expenses, sort) {
-    const { field = 'date', order = 'desc' } = sort;
-
-    return expenses.sort((a, b) => {
-      let aVal = a[field];
-      let bVal = b[field];
-
-      // Handle string comparison
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase();
-        bVal = bVal.toLowerCase();
-      }
-
-      if (order === 'asc') {
-        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-      } else {
-        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-      }
-    });
-  }
-
   async findByUserIdAndId(userId, expenseId) {
-    const expense = await this.findById(expenseId);
-    if (!expense || expense.userId !== userId) {
-      return null;
-    }
-    return expense;
+    return await Expense.findOne({ _id: expenseId, userId }).lean();
   }
 
   async deleteByUserIdAndId(userId, expenseId) {
-    const expense = await this.findByUserIdAndId(userId, expenseId);
-    if (!expense) {
-      return null;
-    }
-    return this.deleteById(expenseId);
+    const result = await Expense.findOneAndDelete({ _id: expenseId, userId });
+    return !!result;
   }
 
   async updateByUserIdAndId(userId, expenseId, updates) {
-    const expense = await this.findByUserIdAndId(userId, expenseId);
-    if (!expense) {
-      return null;
-    }
-    return this.updateById(expenseId, updates);
+    return await Expense.findOneAndUpdate(
+      { _id: expenseId, userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
   }
 
   // Statistics methods
   async getStatsByUserId(userId, filters = {}) {
-    let expenses = await this.find({ userId });
-    expenses = this.applyFilters(expenses, filters);
+    // Build query
+    const query = { userId };
+    this.applyFiltersToQuery(query, filters);
 
-    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const count = expenses.length;
-    const average = count > 0 ? total / count : 0;
+    const result = await Expense.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+          average: { $avg: '$amount' },
+          min: { $min: '$amount' },
+          max: { $max: '$amount' }
+        }
+      }
+    ]);
 
-    // Find min and max
-    const amounts = expenses.map(e => e.amount);
-    const min = amounts.length > 0 ? Math.min(...amounts) : 0;
-    const max = amounts.length > 0 ? Math.max(...amounts) : 0;
+    if (result.length === 0) {
+      return { total: 0, count: 0, average: 0, min: 0, max: 0 };
+    }
 
-    return {
-      total,
-      count,
-      average,
-      min,
-      max
-    };
+    return result[0];
   }
 
   async getStatsByCategory(userId, filters = {}) {
-    let expenses = await this.find({ userId });
-    expenses = this.applyFilters(expenses, filters);
+    const query = { userId };
+    this.applyFiltersToQuery(query, filters);
 
-    const categoryStats = {};
-
-    expenses.forEach(expense => {
-      const categoryId = expense.categoryId || 'uncategorized';
-      if (!categoryStats[categoryId]) {
-        categoryStats[categoryId] = {
-          categoryId,
-          total: 0,
-          count: 0,
-          expenses: []
-        };
+    const result = await Expense.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: { $ifNull: ['$categoryId', 'uncategorized'] },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+          expenses: { $push: '$_id' }
+        }
+      },
+      {
+        $project: {
+          categoryId: '$_id',
+          total: 1,
+          count: 1,
+          average: { $divide: ['$total', '$count'] },
+          expenses: 1,
+          _id: 0
+        }
       }
-      categoryStats[categoryId].total += expense.amount;
-      categoryStats[categoryId].count += 1;
-      categoryStats[categoryId].expenses.push(expense._id);
-    });
+    ]);
 
-    // Calculate averages and percentages
-    const grandTotal = Object.values(categoryStats).reduce((sum, cat) => sum + cat.total, 0);
-    Object.values(categoryStats).forEach(cat => {
-      cat.average = cat.total / cat.count;
+    // Calculate grand total and percentages
+    const grandTotal = result.reduce((sum, cat) => sum + cat.total, 0);
+    result.forEach(cat => {
       cat.percentage = grandTotal > 0 ? (cat.total / grandTotal) * 100 : 0;
     });
 
-    return Object.values(categoryStats);
+    return result;
   }
 
   async getStatsByTag(userId, filters = {}) {
-    let expenses = await this.find({ userId });
-    expenses = this.applyFilters(expenses, filters);
+    const query = { userId };
+    this.applyFiltersToQuery(query, filters);
 
-    const tagStats = {};
-
-    expenses.forEach(expense => {
-      if (expense.tags && expense.tags.length > 0) {
-        expense.tags.forEach(tagId => {
-          if (!tagStats[tagId]) {
-            tagStats[tagId] = {
-              tagId,
-              total: 0,
-              count: 0,
-              expenses: []
-            };
-          }
-          tagStats[tagId].total += expense.amount;
-          tagStats[tagId].count += 1;
-          tagStats[tagId].expenses.push(expense._id);
-        });
+    const result = await Expense.aggregate([
+      { $match: query },
+      { $unwind: '$tags' },
+      {
+        $group: {
+          _id: '$tags',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+          expenses: { $push: '$_id' }
+        }
+      },
+      {
+        $project: {
+          tagId: '$_id',
+          total: 1,
+          count: 1,
+          average: { $divide: ['$total', '$count'] },
+          expenses: 1,
+          _id: 0
+        }
       }
-    });
+    ]);
 
-    // Calculate averages
-    Object.values(tagStats).forEach(tag => {
-      tag.average = tag.total / tag.count;
-    });
-
-    return Object.values(tagStats);
+    return result;
   }
 
   async getStatsByMonth(userId, filters = {}) {
-    let expenses = await this.find({ userId });
-    expenses = this.applyFilters(expenses, filters);
+    const query = { userId };
+    this.applyFiltersToQuery(query, filters);
 
-    const monthStats = {};
+    const result = await Expense.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: { $substr: ['$date', 0, 7] },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+          expenses: { $push: '$_id' }
+        }
+      },
+      {
+        $project: {
+          month: '$_id',
+          total: 1,
+          count: 1,
+          average: { $divide: ['$total', '$count'] },
+          expenses: 1,
+          _id: 0
+        }
+      },
+      { $sort: { month: 1 } }
+    ]);
 
-    expenses.forEach(expense => {
-      // Extract YYYY-MM from date
-      const month = expense.date.substring(0, 7);
-      if (!monthStats[month]) {
-        monthStats[month] = {
-          month,
-          total: 0,
-          count: 0,
-          expenses: []
-        };
-      }
-      monthStats[month].total += expense.amount;
-      monthStats[month].count += 1;
-      monthStats[month].expenses.push(expense._id);
-    });
-
-    // Calculate averages
-    Object.values(monthStats).forEach(month => {
-      month.average = month.total / month.count;
-    });
-
-    // Sort by month
-    return Object.values(monthStats).sort((a, b) => a.month.localeCompare(b.month));
+    return result;
   }
 
   async getTrends(userId, filters = {}) {
@@ -285,6 +280,40 @@ class ExpenseRepository extends BaseRepository {
       previousAverage: parseFloat(previousAvg.toFixed(2)),
       monthlyStats
     };
+  }
+
+  // Helper method to apply filters to MongoDB query
+  applyFiltersToQuery(query, filters) {
+    if (filters.categoryId) {
+      query.categoryId = filters.categoryId;
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      query.tags = { $in: filters.tags };
+    }
+
+    if (filters.startDate || filters.endDate) {
+      query.date = {};
+      if (filters.startDate) query.date.$gte = filters.startDate;
+      if (filters.endDate) query.date.$lte = filters.endDate;
+    }
+
+    if (filters.minAmount !== undefined || filters.maxAmount !== undefined) {
+      query.amount = {};
+      if (filters.minAmount !== undefined) query.amount.$gte = parseFloat(filters.minAmount);
+      if (filters.maxAmount !== undefined) query.amount.$lte = parseFloat(filters.maxAmount);
+    }
+
+    if (filters.paymentMethod) {
+      query.paymentMethod = filters.paymentMethod;
+    }
+
+    if (filters.search) {
+      query.$or = [
+        { description: { $regex: filters.search, $options: 'i' } },
+        { notes: { $regex: filters.search, $options: 'i' } }
+      ];
+    }
   }
 }
 

@@ -3,30 +3,58 @@
  * Data access layer for categories
  */
 
-const path = require('path');
-const BaseRepository = require('./BaseRepository');
 const Category = require('../models/Category');
-const config = require('../config');
 const { CATEGORY_CONSTANTS } = require('../constants');
 
-class CategoryRepository extends BaseRepository {
-  constructor() {
-    const filePath = path.join(config.DATA_DIR, 'categories.json');
-    super(filePath, Category);
+class CategoryRepository {
+  async findById(id) {
+    return await Category.findById(id).lean();
+  }
+
+  async find(query = {}) {
+    return await Category.find(query).lean();
+  }
+
+  async findOne(query) {
+    return await Category.findOne(query).lean();
+  }
+
+  async create(data) {
+    const category = new Category(data);
+    await category.save();
+    return category.toJSON();
+  }
+
+  async updateById(id, updates) {
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+    return category;
+  }
+
+  async deleteById(id) {
+    const result = await Category.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async count(query = {}) {
+    return await Category.countDocuments(query);
   }
 
   /**
    * Find all system categories
    */
   async findSystemCategories() {
-    return this.find({ type: CATEGORY_CONSTANTS.TYPE.SYSTEM });
+    return await this.find({ type: CATEGORY_CONSTANTS.TYPE.SYSTEM });
   }
 
   /**
    * Find all user categories for a specific user
    */
   async findUserCategories(userId) {
-    return this.find({
+    return await this.find({
       userId,
       type: CATEGORY_CONSTANTS.TYPE.USER
     });
@@ -36,13 +64,13 @@ class CategoryRepository extends BaseRepository {
    * Find all active categories (system + user's own)
    */
   async findAllForUser(userId) {
-    return this.find({
+    return await Category.find({
       $or: [
         { type: CATEGORY_CONSTANTS.TYPE.SYSTEM },
         { userId, type: CATEGORY_CONSTANTS.TYPE.USER }
       ],
       isActive: CATEGORY_CONSTANTS.STATUS.ACTIVE
-    });
+    }).lean();
   }
 
   /**
@@ -62,7 +90,7 @@ class CategoryRepository extends BaseRepository {
       query.type = CATEGORY_CONSTANTS.TYPE.SYSTEM;
     }
 
-    return this.findOne(query);
+    return await this.findOne(query);
   }
 
   /**
@@ -81,16 +109,15 @@ class CategoryRepository extends BaseRepository {
       ];
     }
 
-    return this.find(query);
+    return await this.find(query);
   }
 
   /**
    * Soft delete a category (only user categories)
    */
   async softDelete(id) {
-    return this.updateById(id, {
-      isActive: CATEGORY_CONSTANTS.STATUS.INACTIVE,
-      updatedAt: new Date().toISOString()
+    return await this.updateById(id, {
+      isActive: CATEGORY_CONSTANTS.STATUS.INACTIVE
     });
   }
 
@@ -101,16 +128,14 @@ class CategoryRepository extends BaseRepository {
     const systemCategories = await this.findSystemCategories();
 
     if (systemCategories.length === 0) {
-      const categoriesToCreate = CATEGORY_CONSTANTS.SYSTEM_CATEGORIES.map(cat =>
-        new Category({
-          ...cat,
-          userId: null,
-          type: CATEGORY_CONSTANTS.TYPE.SYSTEM
-        })
-      );
+      const categoriesToCreate = CATEGORY_CONSTANTS.SYSTEM_CATEGORIES.map(cat => ({
+        ...cat,
+        userId: null,
+        type: CATEGORY_CONSTANTS.TYPE.SYSTEM
+      }));
 
-      for (const category of categoriesToCreate) {
-        await this.create(category.toJSON());
+      for (const categoryData of categoriesToCreate) {
+        await this.create(categoryData);
       }
 
       return categoriesToCreate.length;
@@ -123,7 +148,7 @@ class CategoryRepository extends BaseRepository {
    * Count categories by user
    */
   async countUserCategories(userId) {
-    return this.count({
+    return await this.count({
       userId,
       type: CATEGORY_CONSTANTS.TYPE.USER,
       isActive: CATEGORY_CONSTANTS.STATUS.ACTIVE
@@ -141,8 +166,8 @@ class CategoryRepository extends BaseRepository {
     }
 
     return category.type === CATEGORY_CONSTANTS.TYPE.SYSTEM ||
-           category.userId === userId;
+           (category.userId && category.userId.toString() === userId.toString());
   }
 }
 
-module.exports = CategoryRepository;
+module.exports = new CategoryRepository();

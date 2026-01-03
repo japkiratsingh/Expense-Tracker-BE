@@ -1,48 +1,72 @@
-const path = require('path');
-const BaseRepository = require('./BaseRepository');
+const Tag = require('../models/Tag');
 
-class TagRepository extends BaseRepository {
-  constructor() {
-    super(path.join(__dirname, '../../data/tags.json'));
+class TagRepository {
+  async findById(id) {
+    return await Tag.findById(id).lean();
+  }
+
+  async find(query = {}) {
+    return await Tag.find(query).lean();
+  }
+
+  async findOne(query) {
+    return await Tag.findOne(query).lean();
+  }
+
+  async create(data) {
+    const tag = new Tag(data);
+    await tag.save();
+    return tag.toJSON();
+  }
+
+  async updateById(id, updates) {
+    const tag = await Tag.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+    return tag;
+  }
+
+  async deleteById(id) {
+    const result = await Tag.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async count(query = {}) {
+    return await Tag.countDocuments(query);
   }
 
   async findByUserId(userId) {
-    return this.find({ userId });
+    return await this.find({ userId });
   }
 
   async findByUserIdAndName(userId, name) {
-    return this.findOne({
+    return await this.findOne({
       userId,
       name: name.trim()
     });
   }
 
   async findByUserIdAndId(userId, tagId) {
-    const tag = await this.findById(tagId);
-    if (!tag || tag.userId !== userId) {
-      return null;
-    }
-    return tag;
+    return await Tag.findOne({ _id: tagId, userId }).lean();
   }
 
   async countByUserId(userId) {
-    return this.count({ userId });
+    return await this.count({ userId });
   }
 
   async deleteByUserIdAndId(userId, tagId) {
-    const tag = await this.findByUserIdAndId(userId, tagId);
-    if (!tag) {
-      return null;
-    }
-    return this.deleteById(tagId);
+    const result = await Tag.findOneAndDelete({ _id: tagId, userId });
+    return !!result;
   }
 
   async updateByUserIdAndId(userId, tagId, updates) {
-    const tag = await this.findByUserIdAndId(userId, tagId);
-    if (!tag) {
-      return null;
-    }
-    return this.updateById(tagId, updates);
+    return await Tag.findOneAndUpdate(
+      { _id: tagId, userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
   }
 
   /**
@@ -60,7 +84,7 @@ class TagRepository extends BaseRepository {
 
     // Note: The actual expense update will be handled by the service layer
     // This method just deletes the source tag after merge
-    return this.deleteById(sourceTagId);
+    return await this.deleteById(sourceTagId);
   }
 }
 

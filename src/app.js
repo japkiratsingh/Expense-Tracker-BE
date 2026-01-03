@@ -8,6 +8,7 @@ const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
 const { COMMON_CONSTANTS, RESPONSE_MESSAGES, ERROR_MESSAGES } = require('./constants');
+const { getConnectionStatus } = require('./config/database');
 
 const app = express();
 
@@ -36,11 +37,16 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check
 app.get('/health', (req, res) => {
+  const dbConnected = getConnectionStatus();
   res.json({
-    status: 'ok',
+    status: dbConnected ? 'ok' : 'degraded',
     message: RESPONSE_MESSAGES.GENERAL.API_RUNNING,
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    database: {
+      connected: dbConnected,
+      status: dbConnected ? 'connected' : 'disconnected'
+    }
   });
 });
 
